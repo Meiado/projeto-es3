@@ -1,0 +1,203 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../node_modules/.prisma/client"
+  engineType    = "library"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Especificacao {
+  ONG
+  DOACOES
+}
+
+model Estado {
+  est_id   Int      @id @default(autoincrement())
+  est_nome String   @unique @db.VarChar(45)
+  est_uf   String   @unique @db.VarChar(2)
+  Cidade   Cidade[]
+
+  @@map("estado")
+}
+
+model Cidade {
+  cid_id   Int      @id @default(autoincrement())
+  cid_nome String   @unique
+  est_id   Int
+  Estado   Estado   @relation(fields: [est_id], references: [est_id])
+  Pessoa   Pessoa[]
+
+  @@map("cidade")
+}
+
+model Pessoa {
+  pes_id          Int       @id @default(autoincrement())
+  pes_nome        String    @db.VarChar(255)
+  pes_email       String    @unique @db.VarChar(255)
+  pes_telefone    String    @db.VarChar(20)
+  pes_logradouro  String    @db.VarChar(255)
+  pes_complemento String    @db.VarChar(255)
+  pes_numero      String    @db.VarChar(10)
+  pes_bairro      String    @db.VarChar(100)
+  cid_id          Int
+  pes_status      Boolean   @default(true)
+  fisica          Fisica?
+  juridica        Juridica?
+  cidade          Cidade    @relation(fields: [cid_id], references: [cid_id])
+  // fisica          Fisica[]
+  // juridica        Juridica[]
+  Usuario         Usuario[]
+  Compra          Compra[]
+  Doacao          Doacao[]
+
+  @@map("pessoa")
+}
+
+model Sexo {
+  sex_id        Int      @id @default(autoincrement())
+  sex_descricao String   @db.VarChar(50)
+  fisicas       Fisica[]
+
+  @@map("sexo")
+}
+
+model Fisica {
+  pes_id              Int      @id
+  fis_cpf             String   @db.VarChar(11)
+  fis_rg              String   @db.VarChar(9)
+  sex_id              Int
+  fis_data_nascimento DateTime
+  pessoa              Pessoa   @relation(fields: [pes_id], references: [pes_id])
+  sexo                Sexo     @relation(fields: [sex_id], references: [sex_id])
+
+  @@map("fisica")
+}
+
+model Juridica {
+  pes_id            Int    @id
+  jur_cnpj          String @db.VarChar(14)
+  jur_razao_social  String @db.VarChar(255)
+  jur_url_site      String @db.VarChar(255)
+  jur_nome_fantasia String @db.VarChar(255)
+  pessoa            Pessoa @relation(fields: [pes_id], references: [pes_id])
+
+  @@map("juridica")
+}
+
+model TiposPermissao {
+  tp_id        Int       @id @default(autoincrement())
+  tp_descricao String    @db.VarChar(45)
+  Usuario      Usuario[]
+
+  @@map("tipos_permissao")
+}
+
+model TipoStatus {
+  ts_id        Int       @id @default(autoincrement())
+  ts_descricao String    @db.VarChar(45)
+  Usuario      Usuario[]
+
+  @@map("tipo_status")
+}
+
+model Usuario {
+  usu_id    Int    @id @default(autoincrement())
+  usu_senha String @db.Char(60)
+  usu_foto  String @db.VarChar(255)
+  pes_id    Int    @unique
+  tp_id     Int
+  ts_id     Int
+
+  pessoa    Pessoa         @relation(fields: [pes_id], references: [pes_id])
+  permissao TiposPermissao @relation(fields: [tp_id], references: [tp_id])
+  status    TipoStatus     @relation(fields: [ts_id], references: [ts_id])
+
+  @@map("usuario")
+}
+
+model TipoProduto {
+  tipo_pro_id   Int       @id @default(autoincrement())
+  tipo_pro_nome String    @unique @db.Char(60)
+  Produto       Produto[]
+
+  @@map("tipo_produto")
+}
+
+model Produto {
+  pro_id              Int    @id @default(autoincrement())
+  pro_nome            String @db.Char(255)
+  pro_descricao       String @db.Text
+  pro_estoque_ong     Int    @default(0)
+  pro_estoque_doacoes Int    @default(0)
+  tipo_pro_id         Int
+
+  tipo         TipoProduto   @relation(fields: [tipo_pro_id], references: [tipo_pro_id])
+  itens_compra ItensCompra[]
+  itens_doacao ItensDoacao[]
+
+  @@map("produto")
+}
+
+model Compra {
+  com_id            Int           @id @default(autoincrement())
+  com_data_compra   DateTime
+  com_data_registro DateTime      @default(now())
+  com_valor_total   Decimal
+  pes_id            Int
+  pessoa            Pessoa        @relation(fields: [pes_id], references: [pes_id])
+  itens_compra      ItensCompra[]
+
+  @@map("compra")
+}
+
+model ItensCompra {
+  pro_id               Int
+  com_id               Int
+  itens_com_quantidade Int
+  itens_com_valor      Decimal
+  compra               Compra  @relation(fields: [com_id], references: [com_id])
+  produto              Produto @relation(fields: [pro_id], references: [pro_id])
+
+  @@id([pro_id, com_id])
+  @@map("itens_compra")
+}
+
+model ItensDoacao {
+  pro_id                  Int
+  doa_id                  Int
+  itens_doa_quantidade    Int
+  itens_doa_especificacao Especificacao
+  Produto                 Produto       @relation(fields: [pro_id], references: [pro_id])
+  Doacao                  Doacao        @relation(fields: [doa_id], references: [doa_id])
+
+  @@id([pro_id, doa_id, itens_doa_especificacao])
+  @@map("itens_doacao")
+}
+
+model Doacao {
+  doa_id        Int      @id @default(autoincrement())
+  doa_data      DateTime
+  doa_dinheiro  Decimal  @db.Decimal(10, 2)
+  pes_id_doador Int?
+
+  doador       Pessoa?       @relation(fields: [pes_id_doador], references: [pes_id])
+  itens_doacao ItensDoacao[]
+
+  @@map("doacao")
+}
+
+model Parametrizacao {
+  par_id                Int    @id @default(autoincrement())
+  par_logo_grande       String @db.VarChar(100)
+  par_logo_pequena      String @db.VarChar(100)
+  par_cor_primaria      String @db.VarChar(8)
+  par_cor_secundaria    String @db.VarChar(8)
+  par_cor_terciaria     String @db.VarChar(8)
+  par_cor_neutra_clara  String @db.VarChar(8)
+  par_cor_neutra_media  String @db.VarChar(8)
+  par_cor_neutra_escura String @db.VarChar(8)
+}
