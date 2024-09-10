@@ -10,9 +10,13 @@ import { Subject } from 'src/utils/interfaces/Subject';
 import { Observer } from 'src/utils/interfaces/Observer';
 import { DoadorObserver } from 'src/pessoas/observer/doador.observer';
 import { DoacaoOut } from '../dto/out-doacao.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class DoacaoRepository implements Subject {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mailerService: MailerService,
+  ) {
     this.loadObservers();
   }
   private observers: Observer[] = [];
@@ -29,6 +33,7 @@ export class DoacaoRepository implements Subject {
     for (const doador of doadores) {
       if (doador.pes_status) {
         const doadorObserver = new DoadorObserver(
+          this.mailerService,
           doador.pes_id,
           doador.pes_email,
         );
@@ -98,8 +103,9 @@ export class DoacaoRepository implements Subject {
       );
     }
     let doacao = null;
+    let pessoa = null;
     if (createDoacaoDto.pes_id_doador) {
-      const pessoa = await this.prisma.pessoa.findFirst({
+      pessoa = await this.prisma.pessoa.findFirst({
         where: { pes_id: createDoacaoDto.pes_id_doador },
       });
       if (!pessoa) throw new NotFoundException('Pessoa não encontrada');
@@ -136,7 +142,15 @@ export class DoacaoRepository implements Subject {
       novaDoacao,
       ...atualizacoesEstoque,
     ]);
-    this.notifyObservers('DOACAO_RECEBIDA', result[0]);
+    if (pessoa) {
+      const doadorObserver = new DoadorObserver(
+        this.mailerService,
+        pessoa.pes_id,
+        pessoa.pes_email,
+      );
+      this.registerObserver(doadorObserver);
+      this.notifyObservers('DOACAO_RECEBIDA', result[0]);
+    }
     return result[0];
   }
 

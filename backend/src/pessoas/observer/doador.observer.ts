@@ -21,7 +21,6 @@ export class DoadorObserver implements Observer {
       });
     }
   }
-
   constructor(
     private mailerService: MailerService,
     public pes_id: number,
