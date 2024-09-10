@@ -3,10 +3,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { FisicaOut } from '../interfaces/fisica.out';
 import { CreateFisicaDto } from '../dto/create-fisica.dto';
 import { UpdateFisicaDto } from '../dto/update-fisica.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class FisicaRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async findAll() {
     const fisicas = await this.prisma.fisica.findMany();
@@ -138,6 +142,7 @@ export class FisicaRepository {
     });
 
     const result = await this.prisma.$transaction([criarPessoaFisica]);
+    this.emailService.addObservers(result[0].pes_email);
     return result;
   }
 
