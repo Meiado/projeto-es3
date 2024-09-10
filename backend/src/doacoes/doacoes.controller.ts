@@ -1,14 +1,10 @@
 import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { DoacoesService } from './doacoes.service';
 import { CreateDoacaoDto } from './dto/create-doacao.dto';
-import { EmailService } from 'src/email/email.service';
 
 @Controller('doacoes')
 export class DoacoesController {
-  constructor(
-    private readonly doacoesService: DoacoesService,
-    private readonly emailService: EmailService,
-  ) {}
+  constructor(private readonly doacoesService: DoacoesService) {}
 
   @Post()
   create(@Body() createDoacaoTDto: CreateDoacaoDto) {
@@ -17,7 +13,6 @@ export class DoacoesController {
 
   @Get()
   findAll() {
-    console.log(this.emailService.getObservers());
     return this.doacoesService.findAll();
   }
 

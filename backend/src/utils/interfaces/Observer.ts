@@ -1,3 +1,3 @@
 export interface Observer {
-  update(eventType: string, data: any): void;
+  notify(eventType: string, data: any): void;
 }

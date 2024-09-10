@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { ItemDoacaoOut } from './item-doacao.out';
+import { ItemDoacaoOut } from './out-item-doacao.dto';
 
 export interface DoacaoOut {
   doa_id: number;

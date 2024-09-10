@@ -6,11 +6,47 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDoacaoDto } from '../dto/create-doacao.dto';
 import { $Enums } from '@prisma/client';
-import { DoacaoOut } from '../interfaces/doacao.out';
-
+import { Subject } from 'src/utils/interfaces/Subject';
+import { Observer } from 'src/utils/interfaces/Observer';
+import { DoadorObserver } from 'src/pessoas/observer/doador.observer';
+import { DoacaoOut } from '../dto/out-doacao.dto';
 @Injectable()
-export class DoacaoRepository {
-  constructor(private readonly prisma: PrismaService) {}
+export class DoacaoRepository implements Subject {
+  constructor(private readonly prisma: PrismaService) {
+    this.loadObservers();
+  }
+  private observers: Observer[] = [];
+
+  async loadObservers() {
+    const doadores = [];
+    const doacoes = await this.prisma.doacao.findMany();
+    for (const doacao of doacoes) {
+      const doador = await this.prisma.pessoa.findUnique({
+        where: { pes_id: doacao.pes_id_doador },
+      });
+      if (doador) doadores.push(doador);
+    }
+    for (const doador of doadores) {
+      if (doador.pes_status) {
+        const doadorObserver = new DoadorObserver(
+          doador.pes_id,
+          doador.pes_email,
+        );
+        this.registerObserver(doadorObserver);
+      }
+    }
+  }
+  registerObserver(o: Observer): void {
+    this.observers.push(o);
+  }
+  removeObserver(o: Observer): void {
+    this.observers.splice(this.observers.indexOf(o), 1);
+  }
+  notifyObservers(eventType: string, data: any): void {
+    this.observers.forEach((observer) => {
+      observer.notify(eventType, data);
+    });
+  }
 
   async findAll() {
     const doacoesOut: DoacaoOut[] = [];
@@ -100,6 +136,7 @@ export class DoacaoRepository {
       novaDoacao,
       ...atualizacoesEstoque,
     ]);
+    this.notifyObservers('DOACAO_RECEBIDA', result[0]);
     return result[0];
   }
 
@@ -126,6 +163,16 @@ export class DoacaoRepository {
       ...atualizacoesEstoque,
       this.prisma.doacao.delete({ where: { doa_id: id } }),
     ]);
+    this.notifyObservers('DOACAO_CANCELADA', result[result.length - 1]);
+    for (const observer of this.observers) {
+      if (
+        observer instanceof DoadorObserver &&
+        observer.pes_id === doacao.pes_id_doador
+      ) {
+        this.removeObserver(observer);
+        break;
+      }
+    }
     return result[result.length - 1];
   }
 }
