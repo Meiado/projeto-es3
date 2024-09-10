@@ -33,17 +33,17 @@ export interface DoacaoAnonimaIn {
 
 export class DoacaoService {
     static async create(doacao: DoacaoIn | DoacaoAnonimaIn) {
-        const response = await api.post('/doacao', doacao);
+        const response = await api.post('/doacoes', doacao);
         return response.status;
     }
 
     static async getDoacoes() {
-        const response = await api.get('/doacao');
+        const response = await api.get('/doacoes');
         return response.data;
     }
 
     static async removerDoacao(id: number) {
-        const response = await api.delete(`/doacao/${id}`);
+        const response = await api.delete(`/doacoes/${id}`);
         return response.data;
     }
 }

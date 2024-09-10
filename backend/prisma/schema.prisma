@@ -48,8 +48,6 @@ model Pessoa {
   fisica          Fisica?
   juridica        Juridica?
   cidade          Cidade    @relation(fields: [cid_id], references: [cid_id])
-  // fisica          Fisica[]
-  // juridica        Juridica[]
   Usuario         Usuario[]
   Compra          Compra[]
   Doacao          Doacao[]

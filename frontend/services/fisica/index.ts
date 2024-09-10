@@ -56,7 +56,7 @@ export class FisicaService {
 
   // Função para obter a lista de pessoas físicas
   static async getFisicas(): Promise<FisicaOut[]> {
-    const response = await api.get('/fisicas');
+    const response = await api.get('pessoas/fisicas');
     return response.data;
   }
 
@@ -65,7 +65,7 @@ export class FisicaService {
     if(id <= 0) {
       return null;
     }
-    const response = await api.get(`/fisicas/${id}`);
+    const response = await api.get(`pessoas/fisicas/${id}`);
     return response.data;
   }
 
@@ -73,13 +73,13 @@ export class FisicaService {
     if(id <= 0) {
       return null;
     }
-    const response = await api.get(`/fisicas/${id}`);
+    const response = await api.get(`pessoas/fisicas/${id}`);
     return response.data;
   }
 
   // Função para criar uma nova pessoa física
   static async createFisica(fisica: FisicaIn): Promise<FisicaOut> {
-    const response = await api.post('/fisicas', fisica);
+    const response = await api.post('pessoas/fisicas', fisica);
     return response.data;
   }
 
@@ -88,17 +88,17 @@ export class FisicaService {
     if(id <= 0) {
       return null;
     }
-    const response = await api.put(`/fisicas/${id}`, fisica);
+    const response = await api.patch(`/pessoas/fisicas/${id}`, fisica);
     return response.data;
   }
 
   static async deactivateFisica(id: number): Promise<void> {
-    await api.put(`/fisicas/deactivate/${id}`);
+    await api.put(`/pessoas/fisicas/deactivate/${id}`);
   }
 
   // Função para excluir uma pessoa física pelo ID
   static async deleteFisica(id: number): Promise<void> {
-    await api.delete(`/fisicas/${id}`);
+    await api.delete(`/pessoas/fisicas/${id}`);
   }
 }
 

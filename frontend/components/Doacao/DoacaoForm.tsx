@@ -137,7 +137,7 @@ const DoacaoForm = ({ doadores, produtos, setMenuOption, setModalOpen }: DoacaoF
             console.log(doacao);
             const result = await DoacaoService.create(doacao);
             console.log(result)
-            if(result===200) {
+            if(result===201) {
                 setCpf('');
                 setIsAnonimo(false);
                 setDoador(null);

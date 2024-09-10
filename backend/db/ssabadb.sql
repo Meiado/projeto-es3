@@ -386,18 +386,6 @@ ALTER TABLE `produto`
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
-DROP TABLE IF EXISTS `itens_doacao`
-
-CREATE TABLE IF NOT EXISTS `itens_doacao` (
-  `pro_id` INT,
-  `doa_id` INT,
-  `itens_doa_quantidade` INT,
-  PRIMARY KEY (`pro_id`, `doa_id`),
-  FOREIGN KEY (`pro_id`) REFERENCES `produto`(`pro_id`),
-  FOREIGN KEY (`doa_id`) REFERENCES `doacao`(`doa_id`)
-);
-
-
 DROP TABLE IF EXISTS `doacao`
 
 CREATE TABLE IF NOT EXISTS `doacao` (
@@ -409,11 +397,17 @@ CREATE TABLE IF NOT EXISTS `doacao` (
   FOREIGN KEY (`pes_id_doador`) REFERENCES `pessoa`(`pes_id`)
 );
 
-ALTER TABLE itens_doacao 
-	ADD COLUMN itens_doa_especificacao ENUM('ONG', 'DOACOES') NOT NULL;
+DROP TABLE IF EXISTS `itens_doacao`
 
-ALTER TABLE `itens_doacao` 
-DROP PRIMARY KEY, 
-ADD PRIMARY KEY (`pro_id`, `doa_id`, `itens_doa_especificacao`);
+CREATE TABLE IF NOT EXISTS `itens_doacao` (
+  `pro_id` INT,
+  `doa_id` INT,
+  `itens_doa_quantidade` INT,
+  `itens_doa_especificacao` ENUM('ONG', 'DOACOES') NOT NULL,
+  PRIMARY KEY (`pro_id`, `doa_id`, `itens_doa_especificacao`),
+  FOREIGN KEY (`pro_id`) REFERENCES `produto`(`pro_id`),
+  FOREIGN KEY (`doa_id`) REFERENCES `doacao`(`doa_id`)
+);
+
 
 COMMIT;
