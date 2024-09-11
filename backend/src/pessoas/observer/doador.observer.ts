@@ -1,5 +1,5 @@
 import { MailService } from 'src/mail/mail.service';
-import { Observer } from 'src/utils/interfaces/Observer';
+import { Observer } from 'src/patterns/interfaces/Observer';
 
 export class DoadorObserver implements Observer {
   notify(eventType: string, data: any): void {
