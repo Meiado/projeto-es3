@@ -7,6 +7,7 @@ import { DoacoesModule } from './doacoes/doacoes.module';
 import { ProdutosModule } from './produtos/produtos.module';
 import { CidadesModule } from './cidades/cidades.module';
 import { EstadosModule } from './estados/estados.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { EstadosModule } from './estados/estados.module';
     ProdutosModule,
     EstadosModule,
     CidadesModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

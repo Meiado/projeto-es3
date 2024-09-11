@@ -3,27 +3,12 @@ import { DoacoesService } from './doacoes.service';
 import { DoacoesController } from './doacoes.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { DoacaoRepository } from './repositories/doacoes.repository';
-import { MailerModule } from '@nestjs-modules/mailer';
+import { MailService } from 'src/mail/mail.service';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [
-    MailerModule.forRoot({
-      transport: {
-        host: 'smtp.mailgun.org',
-        secure: false,
-        port: 587,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-        ignoreTLS: true,
-      },
-      defaults: {
-        from: '""',
-      },
-    }),
-  ],
+  imports: [MailModule],
   controllers: [DoacoesController],
-  providers: [DoacoesService, DoacaoRepository, PrismaService],
+  providers: [DoacoesService, DoacaoRepository, MailService, PrismaService],
 })
 export class DoacoesModule {}
