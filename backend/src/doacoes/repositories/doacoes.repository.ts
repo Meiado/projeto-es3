@@ -187,7 +187,8 @@ export class DoacaoRepository implements Subject {
     for (const observer of this.observers) {
       if (
         observer instanceof DoadorObserver &&
-        observer.pes_id === doacao.pes_id_doador
+        observer.pes_id === doacao.pes_id_doador &&
+        observer.doa_id === id
       ) {
         this.removeObserver(observer);
         break;
