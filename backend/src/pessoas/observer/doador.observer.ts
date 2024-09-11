@@ -1,9 +1,9 @@
-import { DoacaoOut } from 'src/doacoes/dto/out-doacao.dto';
+import { Doacao } from '@prisma/client';
 import { MailService } from 'src/mail/mail.service';
 import { Observer } from 'src/patterns/interfaces/Observer';
 
 export class DoadorObserver implements Observer {
-  notify(eventType: string, data: DoacaoOut): void {
+  notify(eventType: string, data: Doacao): void {
     if (
       eventType === 'DOACAO_RECEBIDA' &&
       data.pes_id_doador === this.pes_id &&
