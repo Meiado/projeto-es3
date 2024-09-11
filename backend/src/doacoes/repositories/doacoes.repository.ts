@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -11,6 +12,8 @@ import { Observer } from 'src/patterns/interfaces/Observer';
 import { DoadorObserver } from 'src/pessoas/observer/doador.observer';
 import { DoacaoOut } from '../dto/out-doacao.dto';
 import { MailService } from 'src/mail/mail.service';
+import { EstoqueContext } from 'src/produtos/strategies/estoque.context';
+
 @Injectable()
 export class DoacaoRepository implements Subject {
   constructor(
@@ -92,12 +95,19 @@ export class DoacaoRepository implements Subject {
       throw new BadRequestException('Doacao deve conter dinheiro ou itens');
     let itensDoacao = [];
     if (createDoacaoDto.itens_doacao) {
+      const estoque = new EstoqueContext();
       itensDoacao = await Promise.all(
         createDoacaoDto.itens_doacao.map(async (item) => {
           const produto = await this.prisma.produto.findFirst({
             where: { pro_id: item.pro_id },
           });
           if (!produto) throw new NotFoundException('Produto não encontrado');
+          estoque.setStrategy(item.itens_doa_especificacao);
+          // STRATEGY DE VALIDAÇÃO DO ESTOQUE
+          if (!estoque.validarEstoque(produto, item.itens_doa_especificacao))
+            throw new NotAcceptableException(
+              'Variação muito alta de estoque, doações limitadas',
+            );
           const itemData = {
             pro_id: item.pro_id,
             itens_doa_quantidade: item.itens_doa_quantidade,
@@ -147,6 +157,7 @@ export class DoacaoRepository implements Subject {
       novaDoacao,
       ...atualizacoesEstoque,
     ]);
+    // ADIÇÃO E NOTIFICAÇÃO DE OBSERVERS
     if (pessoa) {
       const doadorObserver = new DoadorObserver(
         this.mailService,
@@ -183,6 +194,7 @@ export class DoacaoRepository implements Subject {
       ...atualizacoesEstoque,
       this.prisma.doacao.delete({ where: { doa_id: id } }),
     ]);
+    // NOTIFICAÇÃO DE OBSERVERS
     this.notifyObservers('DOACAO_CANCELADA', result[result.length - 1]);
     for (const observer of this.observers) {
       if (
