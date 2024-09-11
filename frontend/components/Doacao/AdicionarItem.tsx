@@ -1,6 +1,7 @@
 import { Especificacao, ItemDoacaoIn } from '@/services/doacao';
 import { ProdutoOut } from '@/services/produto';
 import React, { useState } from 'react';
+import SelectEstoque from './SelectEstoque';
 
 interface AdicionarItemProps {
     produtos: ProdutoOut[];
@@ -11,11 +12,14 @@ interface AdicionarItemProps {
 
 const AdicionarItem: React.FC<AdicionarItemProps> = ({ itens, setItens, produtos, onAdicionarItem }) => {
     const [produtoSelecionado, setProdutoSelecionado] = useState<number | string>(0);
+    const [produto, setProduto] = useState<ProdutoOut | null>(null);
     const [quantidadeDoada, setQuantidadeDoada] = useState<number | string>(0);
     const [especificacao, setEspecificacao] = useState(Especificacao.ONG);
 
     const handleProdutoChange = (event) => {
         setProdutoSelecionado(event.target.value);
+        const p = produtos.find(p => p.pro_id === Number(event.target.value));
+        setProduto(p!);
     };
 
     const handleQuantidadeChange = (event) => {
@@ -31,11 +35,9 @@ const AdicionarItem: React.FC<AdicionarItemProps> = ({ itens, setItens, produtos
         if (produtoSelecionado && quantidadeDoada > 0) {
             const itemExistente = itens.find(item => item.pro_id === produtoSelecionado && item.itens_doa_especificacao === especificacao);
             if (itemExistente) {
-                // Se o item já existe, atualize a quantidade
                 itemExistente.itens_doa_quantidade = Number(itemExistente.itens_doa_quantidade) + Number(quantidadeDoada);
                 setItens([...itens]);
             } else {
-                // Se o item não existe, adicione à lista
                 const itemDoacao: ItemDoacaoIn = {
                     pro_id: Number(produtoSelecionado),
                     itens_doa_quantidade: Number(quantidadeDoada),
@@ -73,10 +75,7 @@ const AdicionarItem: React.FC<AdicionarItemProps> = ({ itens, setItens, produtos
                     <label className='label-text'>
                         <span className='label'>Estoque:</span>
                     </label>
-                    <select value={especificacao} className=' w-full select select-bordered' onChange={handleEspecificacaoChange}>
-                        <option value={Especificacao.ONG}>{Especificacao.ONG}</option>
-                        <option value={Especificacao.DOACOES}>{Especificacao.DOACOES}</option>
-                    </select>
+                    <SelectEstoque value={especificacao} produtoSelecionado={produto} onChange={handleEspecificacaoChange}/>
                 </div>
             </div>
             <div className='grid place-content-center mt-4'>
