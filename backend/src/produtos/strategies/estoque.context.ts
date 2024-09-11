@@ -1,6 +1,6 @@
 import { $Enums, Produto } from '@prisma/client';
 import { EstoqueStrategy } from 'src/patterns/interfaces/Strategy';
-import { EstoqueDoacoesStrategy, EstoqueOngStrategy } from './estoque.stretegy';
+import { EstoqueDoacoesStrategy, EstoqueOngStrategy } from './estoque.strategy';
 
 export class EstoqueContext {
   private strategy: EstoqueStrategy;
